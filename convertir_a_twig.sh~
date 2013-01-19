@@ -48,7 +48,7 @@ do
 		echo -n $m_modifying; echo -en "\e[01;38m `basename $arch`... \e[00m"
 		
 		twig="$arch.twig"
-		echo "sed "${sed_args[@]}" $arch > $twig"
+		sed "${sed_args[@]}" $arch > $twig
 		
 		if [ -f "$twig" ]
 		then

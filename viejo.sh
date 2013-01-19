@@ -48,11 +48,31 @@ do
 		echo -n $m_modifying; echo -en "\e[01;38m `basename $arch`... \e[00m"
 		
 		twig="$arch.twig"
-		echo "sed "${sed_args[@]}" $arch > $twig"
-		
+		cat $arch > $twig
 		if [ -f "$twig" ]
 		then
 		  
+		  
+		  
+		  transform=`cat $arch`
+		  #echo -e "cat arch=\n$transform"
+		  
+		  #Tranforms echos structures
+		  transform=`echo "$transform" | sed -e 's/<?\(php\)\? \?\(=\|echo\) \?/\{\{ /g' -e 's/\({{.*\)?>/\1 }}/g'`
+		  #echo -e "transform [echo]=\n$transform"
+		  #Transforms control structures
+		  transform=`echo "$transform" | sed -e 's/<?\(php\)\? \?/{% /g' -e "s/\({%.*\)[;:{] ?>/\1 %}/g"`
+		  
+		  transform=`echo "$transform" | sed -e 's/\$/ REEMPLAZO /g' -e 's/&/AMPERSAND/g'`
+		  #echo -e "tranform [control structures]=\n$transform"
+		  #Transforms variables
+		  #transform=`echo "$transform" | sed -e "s/\({{\|{%.*\)$\(.*\)->\(.*}}\|%}\)/\1\2\.\3/g"`
+		  #transform=`echo "$transform" | sed -e "s/\({{\|{%\) \?\$/\1REEMPLAZO/g"`
+		  
+		  
+		  echo "$transform"
+		  
+		  sed "${sed_args[@]}" $arch > $twig
 		  diff $twig $arch 1> /dev/null #diff outpu: 0= no differences | 1= files differs
 		  
 		  if [ $? -gt 0 ]

@@ -1,7 +1,9 @@
 <?php echo "lapo ronga" ?> <?= "Uy nos rompieron el orto" ?>
-<? if($pepe = "pepe"): ?>
+<? if($pepe == "pepe"): ?>
 <?php echo "perindonga" ?>
 <? endif; ?>
-<?= echo $var; ?>
+<?= $var; ?>
 <? else: ?>
 <? foreach(%@$#%^@^) { ?>
+<?php echo $arreglo['item']; ?>
+<?= $obeto->getItem() ?>
