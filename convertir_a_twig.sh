@@ -38,7 +38,7 @@ sed_args+=("-e 's/<?\(php\)\? \?\(=\|echo\) \?/\{\{ /g' -e 's/\({{.*\)?>/\1 }}/g
 
 sed_args+=("-e 's/<?\(php\)\? \?/{% /g' -e 's/\({%.*\)[;:{] ?>/\1 %}/g'")
 
-sed_args+=("-e 's/\$/ REEMPLAZO /g' -e 's/&/AMPERSAND/g'")
+sed_args+=("-e 's/\({{.*\)\\$\([:alpha:]*\)/\1 REEMPLAZO /g' -e 's/&/AMPERSAND/g'")
 
 for arch in *.php
 do
