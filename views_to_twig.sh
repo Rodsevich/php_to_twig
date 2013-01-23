@@ -31,10 +31,8 @@ then
 	exit $E_NO_CD
 fi
 
-#sed args
-sed_args=()
 #Tranforms echos structures
-sed_args+=("-e 's/<?\(php\)\? \?\(=\|echo\) \?/{{ /g' -e 's/\({{.*\);\? \??>/\1}}/g'")
+sed_args=("-e 's/<?\(php\)\? \?\(=\|echo\) \?/{{ /g' -e 's/\({{.*\);\? \??>/\1}}/g'")
 
 #Transforms control structures
 sed_args+=("-e 's/<?\(php\)\? \?/{% /g' -e 's/\({%.*\)[;:{] \??>/\1%}/g'")
@@ -45,22 +43,43 @@ sed_args+=("-e 's/\(\({{\|{%\).*\)\\$\(.*\)->\(is\|get\)\(.*\)$/\1\3.\5/g' -e 's
 #Fixes identation
 sed_args+=("-e 's/ *\(}}\|%}\)/ \1/g'")
 
-for arch in *.php
+for file in *.php
 do
-	if [ -f $arch ]
+	if [ -f $file ]
 	then
 		#Modifying message
-		echo -n $m_modifying; echo -en "\e[01;38m `basename $arch`... \e[00m"
+		echo -n $m_modifying; echo -en "\e[01;38m `basename $file`... \e[00m"
 		
-		twig="$arch.twig"
-		echo "sed ${sed_args[@]} $arch > $twig"
-		eval "sed ${sed_args[@]} $arch > $twig"
-		#sed "${sed_args[@]}" $arch > $twig
+		twig="$file.twig"
+		
+		transform_output=$(eval "sed ${sed_args[@]} $file" 2>&1)
+		
+		vars=( $(echo -e "$transform_output" | grep -o -e "{{ *[[:alnum:]]\+" | grep -o -e "[[:alnum:]]\+$") )
+		#PROBAR!!
+		vars+=( $(echo -e "$transform_output" | grep -o -e "{% *if [[:alnum:]]\+" | grep -o -e "[[:alnum:]]\+$") )
+		
+		declare -A variables
+		
+		for var in ${vars[@]}
+		do
+		  variables[$var]=
+		done
+		
+		comment="{# @VARS"
+		for var in ${!variables[@]}
+		do
+		  comment+=" $var"
+		done
+		comment+=" #}\n"
+		
+		final_output="$comment\n$transform_output"
+		
+		echo -e "$final_output" > $twig
 		
 		if [ -f "$twig" ]
 		then
 		  
-		  diff $twig $arch 1> /dev/null #diff outpu: 0= no differences | 1= files differs
+		  diff $twig $file 1> /dev/null #diff outpu: 0= no differences | 1= files differs
 		  
 		  if [ $? -gt 0 ]
 		  then
