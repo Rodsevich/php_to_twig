@@ -32,16 +32,22 @@ then
 fi
 
 #Tranforms echos structures
-sed_args=("-e 's/<?\(php\)\? \?\(=\|echo\) \?/{{ /g' -e 's/\({{.*\);\? \??>/\1}}/g'")
+sed_args=("-e 's/<?\(php\)\? \?\(=\|echo\) \?/{{ /g; :r; s/\({{.*\)?>/\1}}/g; tr'")
 
 #Transforms control structures
-sed_args+=("-e 's/<?\(php\)\? \?/{% /g' -e 's/\({%.*\)[;:{] \??>/\1%}/g'")
+sed_args+=("-e 's/<?\(php\)\? \?/{% /g; s/\({%.*\)[;:{] \??>/\1%}/g;'")
 
-#Transforms variables in structures
-sed_args+=("-e 's/\(\({{\|{%\).*\)\\$\(.*\)->\(is\|get\)\(.*\)$/\1\3.\5/g' -e 's/\({{\|{%\)\(.*\)\\$/\1\2/g'")
+#Transforms variable's methods calls inside structures
+sed_args+=("-e ':m; s/\({{\|{%\)\(.*\)\\$\([[:alnum:].]*\)->\(is\|get\)\(.*\)\(}}\|%}\)/\1\2$\3.\5\6/; tm'")
+
+#Removes undesired characters and fixes control structures
+sed_args+=("-e ':s; s/\({{\|{%\)\(.*\)[$;]\(.*\)\(}}\|%}\)/\1\2\3\4/; ts; s/{%\([^(]*\)(\(.*\))\(.*\)%}/{%\1 \2 \3%}/'")
+
+#Fixes foreach tags
+sed_args+=("-e 's/{% *foreach *\([[:graph:]]*\) *as *\([[:graph:]]*\) *%}/{% for \2 in \1 %}/g'")
 
 #Fixes identation
-sed_args+=("-e 's/ *\(}}\|%}\)/ \1/g'")
+sed_args+=("-e 's/ *\(}}\|%}\)/ \1/g; s/\({{\|{%\) */\1 /g'")
 
 for file in *.php
 do
@@ -54,15 +60,21 @@ do
 		
 		transform_output=$(eval "sed ${sed_args[@]} $file" 2>&1)
 		
-		vars=( $(echo -e "$transform_output" | grep -o -e "{{ *[[:alnum:]]\+" | grep -o -e "[[:alnum:]]\+$") )
-		#PROBAR!!
-		vars+=( $(echo -e "$transform_output" | grep -o -e "{% *if [[:alnum:]]\+" | grep -o -e "[[:alnum:]]\+$") )
+		vars=( $(echo -e "$transform_output" | grep -o -e "{{ *[[:alnum:]_-]\+" | grep -o -e "[[:alnum:]_-]\+$") )
+		vars+=( $(echo -e "$transform_output" | grep -o -e "{% *for.*in [[:alnum:]_-]\+" | grep -o -e "[[:alnum:]_-]\+$") )
+		vars+=( $(echo -e "$transform_output" | grep -o -e "{% *if [[:alnum:]_-]\+" | grep -o -e "[[:alnum:]_-]\+$") )
+		var_removals=( $(echo -e "$transform_output" | grep -o -e "{% *for [[:alnum:]_-]\+" | grep -o -e "[[:alnum:]_-]\+$") )
 		
 		declare -A variables
 		
 		for var in ${vars[@]}
 		do
 		  variables[$var]=
+		done
+		
+		for rem in ${var_removals[@]}
+		do
+		  unset variables[$rem]
 		done
 		
 		comment="{# @VARS"
