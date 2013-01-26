@@ -49,14 +49,12 @@ sed_args+=("-e 's/{% *foreach *\([[:graph:]]*\) *as *\([[:graph:]]*\) *%}/{% for
 #Fixes identation
 sed_args+=("-e 's/ *\(}}\|%}\)/ \1/g; s/\({{\|{%\) */\1 /g'")
 
-# mkdir .old_views
-
 for file in *.php
 do
 	if [ -f $file ]
 	then
 		#Modifying message
-		echo -n $m_modifying; echo -en "\e[01;38m `basename $file`... \e[00m"
+		echo -n "$m_modifying......................................................."; echo -en "\033[12G\e[01;38m `basename $file`\e[00m"
 		
 		twig="$file.twig"
 		
@@ -87,9 +85,13 @@ do
 		done
 		comment+=" #}\n"
 		
-		final_output="$comment\n$transform_output"
-		
-		echo -e "$final_output" > $twig
+		if [ "$comment" != "{# @VARS #}\n" ]
+		then
+		  final_output="$comment\n$transform_output"
+		  echo -e "$final_output" > $twig
+		else
+		  echo -e "$transform_output" > $twig
+		fi
 		
 		if [ -f "$twig" ]
 		then
@@ -98,15 +100,13 @@ do
 		  
 		  if [ $? -gt 0 ]
 		  then
-		    echo -e $m_modify_success
-		    # mv $file ".old_views"
+		    echo -e "\033[67G$m_modify_success"
 		  else
-		    echo -e $m_modify_none
-		    #rm $twig
+		    echo -e "\033[67G$m_modify_none"
 		  fi
 
 		else
-		  echo -e $m_modify_error;
+		  echo -e "\033[67G$m_modify_error"
 		  echo -e $m_E_NO_FILE_CREATION
 		  exit $E_NO_FILE_CREATION
 		fi
