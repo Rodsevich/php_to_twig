@@ -49,6 +49,8 @@ sed_args+=("-e 's/{% *foreach *\([[:graph:]]*\) *as *\([[:graph:]]*\) *%}/{% for
 #Fixes identation
 sed_args+=("-e 's/ *\(}}\|%}\)/ \1/g; s/\({{\|{%\) */\1 /g'")
 
+# mkdir .old_views
+
 for file in *.php
 do
 	if [ -f $file ]
@@ -65,6 +67,7 @@ do
 		vars+=( $(echo -e "$transform_output" | grep -o -e "{% *if [[:alnum:]_-]\+" | grep -o -e "[[:alnum:]_-]\+$") )
 		var_removals=( $(echo -e "$transform_output" | grep -o -e "{% *for [[:alnum:]_-]\+" | grep -o -e "[[:alnum:]_-]\+$") )
 		
+		unset variables
 		declare -A variables
 		
 		for var in ${vars[@]}
@@ -96,6 +99,7 @@ do
 		  if [ $? -gt 0 ]
 		  then
 		    echo -e $m_modify_success
+		    # mv $file ".old_views"
 		  else
 		    echo -e $m_modify_none
 		    #rm $twig
