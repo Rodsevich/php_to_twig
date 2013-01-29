@@ -5,7 +5,7 @@ E_NO_CD=202;
 E_NO_FILE_CREATION=203;
 
 m_E_WRONGARGS="El primer parametro, en donde se especifica el directorio a reemplazar los templates, es obligatorio";
-m_E_NO_CD="No pudo posicionarse en $DIR.";
+m_E_NO_CD="No pudo posicionarse en";
 m_E_NO_FILE_CREATION="No se pudo crear el archivo";
 m_modifying="Modificando";
 m_modify_success="\e[01;32mMODIFICADO\e[00m";
@@ -16,18 +16,18 @@ m_modify_error="\e[01;31mERROR\e[00m";
 #echo_end_patterns=('}}' 'php?>' '?>')
 #if_begin_patterns=('{%' '\<\?if ' '\<\? if ?\(')
 
-if [ -n "$1" ]
+if [[ -n $1 ]]
 then
-	DIR=$1
+	dir=`echo $1 | sed -e "s%/$%%"`
 else
 	echo $m_E_WRONGARGS;
 	exit $E_WRONGARGS;
 fi
 
-cd $DIR
-if [ `pwd` != "$DIR" ]
+cd $dir
+if [ `pwd` != "$dir" ]
 then
-	echo $m_E_NO_CD;
+	echo "$m_E_NO_CD $dir";
 	exit $E_NO_CD
 fi
 
