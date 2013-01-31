@@ -38,7 +38,10 @@ else
 	views_pattern='/views/'
 fi
 
-mkdir old_controllers
+if [[ ! -d old_controllers ]]
+then
+	mkdir old_controllers
+fi
 
 for file in *.php
 do
@@ -66,9 +69,15 @@ do
 			#echo "[$o]=${occurrences[$o]}"
 			template_dir="$(echo ${occurrences[$o]} | grep -o -e "\('\|\"\).*\('\|\"\)" | grep -o -e "[^\"\']*").twig"
 			#echo -e "Tmp. Dir: $template_dir"
+			
+			if [[ `head -n1 $template_dir` == "{# @NOT_TWIG@ #}" ]]; then
+				echo "{# @NOT_TWIG@ #}"
+				break
+			fi
+			
 			template_name="$(echo $template_dir | grep -o -e "[[:alnum:]_-]*.php").twig"
 			#echo -e "Tmp. Name: $template_name"
-
+			unset template_vars
 			if [[ `head -n1 $template_dir` =~ \{#.*@VARS.*#\} ]]
 			then
 				template_vars=`head -n1 $template_dir | sed "s/{# @VARS \(.*\) #}/\1/"`
@@ -84,7 +93,7 @@ do
 				do
 					replace_str+="'$var' => \$$var, "
 				done
-				replace_str=`echo "$replace_str" | sed -e 's/, $/);/'`
+				replace_str=`echo "$replace_str" | sed -e 's/, $/));/'`
 			else
 				replace_str+=");"
 			fi
@@ -102,12 +111,16 @@ do
 			
 		done
 		
+		#new_name=`echo "$file" #| sed 's/\(.*\)\.php/\1_c.php/'`
+		#echo -e "$file_contents" > $new_name
+		
 		mv $file old_controllers/
 		echo -e "$file_contents" > $file
 		
 		if [ -f "$file" ]
 		then
 		  
+		  #diff $new_name $file 1> /dev/null #diff outpu: 0= no differences | 1= files differs
 		  diff old_controllers/$file $file 1> /dev/null #diff outpu: 0= no differences | 1= files differs
 		  
 		  if [ $? -gt 0 ]

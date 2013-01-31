@@ -46,6 +46,9 @@ sed_args+=("-e ':s; s/\({{\|{%\)\(.*\)[$;]\(.*\)\(}}\|%}\)/\1\2\3\4/; ts; s/{%\(
 #Fixes foreach tags
 sed_args+=("-e 's/{% *foreach *\([[:graph:]]*\) *as *\([[:graph:]]*\) *%}/{% for \2 in \1 %}/g'")
 
+#Fixes isset($var) ? tags
+sed_args+=("-e 's/{{.*isset(\( \?[[:alnum:]_-]* \?\)).*?\(.*\)}}/{{ \1 is defined ? \2}}/g'")
+
 #Fixes identation
 sed_args+=("-e 's/ *\(}}\|%}\)/ \1/g; s/\({{\|{%\) */\1 /g'")
 
